@@ -1,0 +1,9 @@
+#chrome-extension-viz {
+    position: absolute;
+    right: 0%;
+    top: 0%;
+    background-color: rgba(240, 248, 255, 0.8);
+    z-index: 100;
+    position: fixed;
+    pointer-events: none;
+}
