@@ -188,15 +188,7 @@ function draw(data, bounds) {
             return d.text;
         });
 
-    var exitGroup = background.append("g")
-        .attr("transform", vis.attr("transform"));
-
-    var exitGroupNode = exitGroup.node();
-
-    text.exit().each(function () {
-        exitGroupNode.appendChild(this);
-    });
-
+    
     var connectedwords = data.filter(function (d) {
         return d.conn != null;
     });
@@ -209,10 +201,10 @@ function draw(data, bounds) {
     path.enter().append("line")
         .style("stock", "rgba(20, 20, 20, 0.5)")
         .attr("x1", function (d) {
-            d.x;
+            return d.x;
         })
         .attr("y1", function (d) {
-            d.y;
+            return d.y;
         })
         .attr("x2", function (d) {
             var c = d.conn;
@@ -222,10 +214,19 @@ function draw(data, bounds) {
             var c = d.conn;
             return words[c.previndex].y;
         })
+        .style("stroke-width", "5px")
         .transition()
         .duration(10);
 
 
+    var exitGroup = background.append("g")
+        .attr("transform", vis.attr("transform"));
+
+    var exitGroupNode = exitGroup.node();
+
+    text.exit().each(function () {
+        exitGroupNode.appendChild(this);
+    });
 
 
     exitGroup.transition()

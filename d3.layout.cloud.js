@@ -172,7 +172,6 @@
         cloud.words = function (x, c) {
             if (!arguments.length) return words;
             words = x;
-            console.log(JSON.stringify(x));
             connections = c;
             return cloud;
         };
