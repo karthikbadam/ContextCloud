@@ -86,17 +86,35 @@ function flatten(o, k) {
 }
 
 var sortedTags;
+var connections; 
 
 function parseText(text) {
     tags = {};
+    connections = {};
+    
     var cases = {};
-    text.split(wordSeparators).forEach(function (word) {
+    var allWords = text.split(wordSeparators);
+        
+    allWords.forEach(function (word, i) {
         //if (discard.test(word)) return;
         word = word.replace(punctuation, "");
         if (stopWords.test(word.toLowerCase())) return;
         word = word.substr(0, maxLength);
         cases[word.toLowerCase()] = word;
-        tags[word = word.toLowerCase()] = (tags[word] || 0) + 1;
+        word = word.toLowerCase();
+        if (tags[word]) {
+            connections[word] = {};
+            tags[word] = tags[word] + 1;
+            
+            if (i - 1 > 0)
+                connections[word].previous = allWords[i-1];
+            
+            if (i + 1 < allWords.length)
+                connections[word].next = allWords[i+1];
+            
+        }
+            
+        tags[word] = 1;
     });
   
     
@@ -111,6 +129,8 @@ function parseText(text) {
         d.key = cases[d.key];
     });
     
+    console.log(JSON.stringify(connections));
+    
     generate();
 }
 
@@ -119,7 +139,7 @@ function generate() {
     fontSize = d3.scale.log().range([10, 30]);
     if (sortedTags.length) fontSize.domain([+sortedTags[sortedTags.length - 1].value || 1, +sortedTags[0].value]);
 
-    layout.stop().words(tags).start();
+    layout.stop().words(tags, connections).start();
 }
 
 function draw(data, bounds) {
@@ -176,6 +196,37 @@ function draw(data, bounds) {
     text.exit().each(function () {
         exitGroupNode.appendChild(this);
     });
+    
+    var connectedwords = data.filter(function (d) {return d.conn!=null;});
+    
+    var path = vis.selectAll("text")
+        .data(words, function (d) {
+            return d.text.toLowerCase();
+        });
+
+    text.transition()
+        .duration(100)
+        .attr("transform", function (d) {
+            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        })
+        .style("font-size", function (d) {
+            return d.size + "px";
+        });
+
+    text.enter().append("text")
+        .attr("text-anchor", "middle")
+        .attr("transform", function (d) {
+            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        })
+        .style("font-size", "1px")
+        .transition()
+        .duration(10)
+        .style("font-size", function (d) {
+            return d.size + "px";
+        });
+    
+    
+    
     
     exitGroup.transition()
         .duration(100)
