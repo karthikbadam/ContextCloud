@@ -86,15 +86,15 @@ function flatten(o, k) {
 }
 
 var sortedTags;
-var connections; 
+var connections;
 
 function parseText(text) {
     tags = {};
     connections = {};
-    
+
     var cases = {};
     var allWords = text.split(wordSeparators);
-        
+
     allWords.forEach(function (word, i) {
         //if (discard.test(word)) return;
         word = word.replace(punctuation, "");
@@ -105,32 +105,32 @@ function parseText(text) {
         if (tags[word]) {
             connections[word] = {};
             tags[word] = tags[word] + 1;
-            
+
             if (i - 1 > 0)
-                connections[word].previous = allWords[i-1];
-            
+                connections[word].previous = allWords[i - 1];
+
             if (i + 1 < allWords.length)
-                connections[word].next = allWords[i+1];
-            
+                connections[word].next = allWords[i + 1];
+
         }
-            
+
         tags[word] = 1;
     });
-  
-    
-    sortedTags = d3.entries(tags) 
+
+
+    sortedTags = d3.entries(tags)
         .sort(function (a, b) {
-        return b.value - a.value;
-    });
-    
+            return b.value - a.value;
+        });
+
     tags = d3.entries(tags);
-    
+
     tags.forEach(function (d) {
         d.key = cases[d.key];
     });
-    
+
     console.log(JSON.stringify(connections));
-    
+
     generate();
 }
 
@@ -176,58 +176,58 @@ function draw(data, bounds) {
         .style("font-size", function (d) {
             return d.size + "px";
         });
-    
+
     text.style("font-family", function (d) {
             return d.font;
         })
         .style("fill", function (d) {
-            return "#333"; 
+            return "#333";
             //fill(d.text.toLowerCase());
         })
         .text(function (d) {
             return d.text;
         });
-    
+
     var exitGroup = background.append("g")
         .attr("transform", vis.attr("transform"));
-    
+
     var exitGroupNode = exitGroup.node();
-    
+
     text.exit().each(function () {
         exitGroupNode.appendChild(this);
     });
-    
-    var connectedwords = data.filter(function (d) {return d.conn!=null;});
-    
-    var path = vis.selectAll("text")
-        .data(words, function (d) {
+
+    var connectedwords = data.filter(function (d) {
+        return d.conn != null;
+    });
+
+    var path = vis.selectAll("line")
+        .data(connectedwords, function (d) {
             return d.text.toLowerCase();
         });
 
-    text.transition()
-        .duration(100)
-        .attr("transform", function (d) {
-            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+    path.enter().append("line")
+        .style("stock", "rgba(20, 20, 20, 0.5)")
+        .attr("x1", function (d) {
+            d.x;
         })
-        .style("font-size", function (d) {
-            return d.size + "px";
-        });
-
-    text.enter().append("text")
-        .attr("text-anchor", "middle")
-        .attr("transform", function (d) {
-            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        .attr("y1", function (d) {
+            d.y;
         })
-        .style("font-size", "1px")
+        .attr("x2", function (d) {
+            var c = d.conn;
+            return words[c.previndex].x;
+        })
+        .attr("y2", function (d) {
+            var c = d.conn;
+            return words[c.previndex].y;
+        })
         .transition()
-        .duration(10)
-        .style("font-size", function (d) {
-            return d.size + "px";
-        });
-    
-    
-    
-    
+        .duration(10);
+
+
+
+
     exitGroup.transition()
         .duration(100)
         .style("opacity", 1e-6)
