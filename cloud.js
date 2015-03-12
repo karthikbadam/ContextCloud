@@ -94,14 +94,25 @@ function parseText(text) {
 
     var cases = {};
     var allWords = text.split(wordSeparators);
-
+    var usableWords = []; 
+    
+    //create the usable words array 
     allWords.forEach(function (word, i) {
-        //if (discard.test(word)) return;
+        if (discard.test(word)) return;
+        
         word = word.replace(punctuation, "");
         if (stopWords.test(word.toLowerCase())) return;
         word = word.substr(0, maxLength);
+        
+        usableWords.push(word);
+    });
+    
+    
+    usableWords.forEach(function (word, i) {
+        
         cases[word.toLowerCase()] = word;
         word = word.toLowerCase();
+        
         if (tags[word]) {
             connections[word] = {};
             tags[word] = tags[word] + 1;
@@ -112,9 +123,12 @@ function parseText(text) {
             if (i + 1 < allWords.length)
                 connections[word].next = allWords[i + 1];
 
-        }
+        } else {
 
-        tags[word] = 1;
+            tags[word] = 1;
+        }
+        
+        
     });
 
 
@@ -129,14 +143,14 @@ function parseText(text) {
         d.key = cases[d.key];
     });
 
-    console.log(JSON.stringify(connections));
+//    console.log(JSON.stringify(connections));
 
     generate();
 }
 
 function generate() {
     words = [];
-    fontSize = d3.scale.log().range([10, 30]);
+    fontSize = d3.scale.log().range([10, 20]);
     if (sortedTags.length) fontSize.domain([+sortedTags[sortedTags.length - 1].value || 1, +sortedTags[0].value]);
 
     layout.stop().words(tags, connections).start();
@@ -192,14 +206,16 @@ function draw(data, bounds) {
     var connectedwords = data.filter(function (d) {
         return d.conn != null;
     });
+    
+    vis.selectAll("line").remove();
 
     var path = vis.selectAll("line")
         .data(connectedwords, function (d) {
             return d.text.toLowerCase();
         });
 
-    path.enter().append("line")
-        .style("stock", "rgba(20, 20, 20, 0.5)")
+    path.enter()
+        .append("line")
         .attr("x1", function (d) {
             return d.x;
         })
@@ -214,11 +230,12 @@ function draw(data, bounds) {
             var c = d.conn;
             return words[c.previndex].y;
         })
-        .style("stroke-width", "5px")
+        .style("stroke-width", "2px")
+        .style("stroke", "rgba(50, 50, 50, 0.2)")
         .transition()
-        .duration(10);
+        .duration(100);
 
-
+    
     var exitGroup = background.append("g")
         .attr("transform", vis.attr("transform"));
 
@@ -227,12 +244,17 @@ function draw(data, bounds) {
     text.exit().each(function () {
         exitGroupNode.appendChild(this);
     });
-
-
+    
+    
+    path.exit().each(function () {
+        exitGroupNode.appendChild(this);
+    });
+    
     exitGroup.transition()
         .duration(100)
         .style("opacity", 1e-6)
         .remove();
+    
     vis.transition()
         .delay(100)
         .duration(75)

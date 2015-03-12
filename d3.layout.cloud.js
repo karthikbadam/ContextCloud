@@ -50,11 +50,10 @@
                     //console.log(d.text);
                     d.conn = null;
 
-    
                     if (connections[d.text]) {
                         d.conn = {};
-                        var previous = connections[d.text].previous;
-                        var next = connections[d.text].next;
+                        var previous = connections[d.text].previous.toLowerCase();
+                        var next = connections[d.text].next.toLowerCase();
                         
                         d.conn.previndex = i; 
                         d.conn.nextindex = i; 
